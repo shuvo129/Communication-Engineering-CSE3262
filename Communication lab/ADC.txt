@@ -1,0 +1,23 @@
+clear; 
+clc;
+data_size=100;
+M=2;
+freq_sep=500;
+nsamp=6;
+fs=10000;
+y=wavread('voice');
+partition=[-.8,-.6,-.5,-.4,-.3,-.2,-.1,0,.1,.2,.3,.4,.5,.6,.8];
+codebook=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+% Now optimize, using codebook as an initial guess.
+[partition2,codebook2] = lloyds(y,codebook);
+[index,quants,distor] = quantiz(y,partition,codebook);
+[index2,quant2,distor2] = quantiz(y,partition2,codebook2);
+ %Compare mean square distortions from initial and optimized
+[distor, distor2] % parameters.
+quantization=dec2bin(quants,4);
+x=str2num(quantization,1);
+fsk_mod=fskmod(x,M,freq_sep,nsamp,fs);
+noise=awgn(fsk_mod,0);
+fsk_demod=fskdemod(noise,M,freq_sep,nsamp,fs);
+[num,rate]=biterr(quants,fsk_demod)
+%sound(fsk_demod)
